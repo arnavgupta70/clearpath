@@ -1,0 +1,15 @@
+# Render blueprint for the API (free tier). The frontend is on GitHub Pages.
+services:
+  - type: web
+    name: clearview-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://arnavgupta70.github.io
+      - key: ANTHROPIC_API_KEY
+        sync: false
