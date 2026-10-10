@@ -4,11 +4,11 @@ from statistics import median
 
 from sqlmodel import Session, select
 
-from .models import Finding, FindingStatus, Submission, utcnow
+from .models import Finding, Submission, utcnow
 from .workflow import APPROVED, DECIDED
 
 # the reviewer agreed with it: still required, or required and since fixed
-CONFIRMED = (FindingStatus.ACCEPTED, FindingStatus.RESOLVED)
+CONFIRMED = ("accepted", "resolved")
 
 
 def first_pass_rate(subs: list[Submission]) -> float | None:
@@ -28,7 +28,7 @@ def rule_precision(findings: list[Finding]) -> dict[str, dict]:
     # Carried-forward copies are skipped so one decision isn't counted per version.
     stats: dict[str, dict] = defaultdict(lambda: {"hits": 0, "confirmed": 0})
     for f in findings:
-        if f.carried_from or f.source == "reviewer" or f.status == FindingStatus.OPEN:
+        if f.carried_from or f.source == "reviewer" or f.status == "open":
             continue
         row = stats["AI" if f.source == "ai" else f.rule_id]
         row["hits"] += 1

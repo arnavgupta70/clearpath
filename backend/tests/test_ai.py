@@ -47,9 +47,9 @@ def test_analyze_anchors_quotes_and_maps_fields(fake_claude):
     messages = fake_claude(fake_response({
         "summary": "Risky.",
         "findings": [
-            {"quote": "pay just $289/month", "title": "Payment claim", "category": "Accuracy", "severity": "major",
+            {"quote": "pay just $289/month", "title": "Payment claim", "severity": "major",
              "explanation": "x", "suggestion": "y", "related_rule_id": "REGZ-CE-TRIGGER"},
-            {"quote": "", "title": "Missing disclosure", "category": "Accuracy", "severity": "minor",
+            {"quote": "", "title": "Missing disclosure", "severity": "minor",
              "explanation": "x", "suggestion": "y", "related_rule_id": ""},
         ],
     }))

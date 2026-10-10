@@ -16,7 +16,6 @@ WEAK_PARTNER_WEIGHT = 8  # partner's first-pass approval rate is below 50%
 RESUBMISSION_CREDIT = -10  # a resubmission only needs the diff reviewed
 
 TIER_THRESHOLDS = [(55, "high"), (30, "medium"), (0, "low")]
-TIER_LABEL = {"low": "Fast lane", "medium": "Standard", "high": "Priority"}
 SLA_BUSINESS_DAYS = {"low": 1, "medium": 2, "high": 3}
 
 
@@ -25,10 +24,6 @@ class Assessment:
     score: int
     tier: str
     factors: list[dict]
-
-    @property
-    def label(self) -> str:
-        return TIER_LABEL[self.tier]
 
     def due(self, start: datetime) -> datetime:
         return add_business_days(start, SLA_BUSINESS_DAYS[self.tier])

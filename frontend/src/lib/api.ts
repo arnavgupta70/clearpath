@@ -35,7 +35,6 @@ export interface Issue {
   source: 'rule' | 'ai' | 'reviewer'
   rule_id: string | null
   title: string
-  category: string
   severity: Severity
   citation: string | null
   explanation: string
@@ -58,7 +57,7 @@ export interface RiskFactor {
 
 export interface Precheck {
   findings: Issue[]
-  risk: { score: number; tier: RiskTier; label: string; factors: RiskFactor[] }
+  risk_tier: RiskTier
   estimated_decision_by: string
 }
 
@@ -74,17 +73,14 @@ export interface SubmissionSummary {
   risk_score: number
   risk_tier: RiskTier
   current_version: number
-  target_launch: string | null
   created_at: string
   updated_at: string
-  submitted_at: string
   due_at: string
   decided_at: string | null
   approval_code: string | null
   submitter: User
   assignee: User | null
-  ai_status: 'pending' | 'done' | 'unavailable' | 'error'
-  counts: Record<Severity, number> & { untriaged: number; required: number }
+  open_issues: number
 }
 
 export interface Version {
@@ -93,14 +89,13 @@ export interface Version {
   content: string
   notes: string | null
   created_at: string
-  ai_status: SubmissionSummary['ai_status']
+  ai_status: 'pending' | 'done' | 'unavailable' | 'error'
   ai_summary: string | null
   findings: Finding[]
 }
 
 export interface AuditEvent {
   id: number
-  kind: string
   message: string
   created_at: string
   actor: User | null
@@ -153,7 +148,7 @@ export const api = {
 
   submissions: (mine = false) => request<SubmissionSummary[]>(`/api/submissions${mine ? '?mine=true' : ''}`),
   submission: (id: number) => request<Submission>(`/api/submissions/${id}`),
-  submit: (body: Draft & { title: string; notes?: string; target_launch?: string }) =>
+  submit: (body: Draft & { title: string; notes?: string }) =>
     request<Submission>('/api/submissions', 'POST', body),
   resubmit: (id: number, content: string, notes?: string) => request<Submission>(`/api/submissions/${id}/versions`, 'POST', { content, notes }),
   decide: (id: number, decision: Decision, note?: string) => request<Submission>(`/api/submissions/${id}/decision`, 'POST', { decision, note }),

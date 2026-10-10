@@ -53,7 +53,6 @@ export function Queue() {
 
 function Row({ sub }: { sub: SubmissionSummary }) {
   const { meta } = usePersona()
-  const openIssues = sub.counts.critical + sub.counts.major + sub.counts.minor
 
   return (
     <Link to={`/review/${sub.id}`} className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3 hover:bg-canvas">
@@ -68,7 +67,7 @@ function Row({ sub }: { sub: SubmissionSummary }) {
       <RiskBadge tier={sub.risk_tier} />
       {sub.status === 'in_review' ? (
         <>
-          <span className="w-24 text-sm text-ink-2">{plural(openIssues, 'issue')}</span>
+          <span className="w-24 text-sm text-ink-2">{plural(sub.open_issues, 'issue')}</span>
           <span className="w-28 text-sm text-ink-2">{sub.assignee?.name}</span>
           <span className={clsx('w-28 text-sm', isOverdue(sub.due_at) ? 'font-medium text-critical-text' : 'text-ink-2')}>{dueText(sub.due_at)}</span>
         </>

@@ -12,7 +12,7 @@ from sqlmodel import Session, select
 from . import ai, metrics, workflow
 from .db import engine, get_session, init_db, reset_db
 from .models import Finding, Submission, User
-from .rules import CHANNELS, PRODUCTS, SNIPPETS
+from .rules import CHANNELS, PRODUCTS, RULE_LIBRARY, SNIPPETS
 from .seed import seed
 from .serialize import detail_out, submissions_out
 from .workflow import WorkflowError
@@ -80,7 +80,6 @@ class Draft(BaseModel):
 class NewSubmission(Draft):
     title: Annotated[str, Field(min_length=1, max_length=200)]
     notes: str | None = None
-    target_launch: str | None = None
 
 
 class Revision(BaseModel):
@@ -111,7 +110,7 @@ def meta(session: SessionDep):
         "channels": CHANNELS,
         "users": session.exec(select(User).order_by(User.id)).all(),
         "snippets": SNIPPETS,
-        "snippet_for_rule": {r.id: r.snippet_id for r in workflow.load_rules(session) if r.snippet_id},
+        "snippet_for_rule": {r.id: r.snippet_id for r in RULE_LIBRARY if r.snippet_id},
     }
 
 

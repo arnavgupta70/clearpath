@@ -7,7 +7,6 @@ Three kinds:
   required    the asset has to contain the pattern for this product/channel/source
               (NMLS ID on mortgage ads, "Reply STOP" on SMS)
 
-RULE_LIBRARY is copied into the database on first run.
 """
 
 import re
@@ -28,8 +27,6 @@ CHANNELS = {
     "sms": "SMS",
     "direct_mail": "Direct mail",
 }
-
-SOURCES = {"internal": "ClearPath team", "affiliate": "Affiliate partner"}
 
 SEVERITY_ORDER = {"critical": 0, "major": 1, "minor": 2}
 LENDING = ["personal_loan", "mortgage"]
@@ -360,10 +357,9 @@ def _spans(patterns: list[str], text: str) -> list[tuple[int, int]]:
     return merged
 
 
-def run_rules(text: str, product: str, channel: str, source: str, rules) -> list[Hit]:
-    # `rules` can be DB rows or RuleDefs, they have the same fields
+def run_rules(text: str, product: str, channel: str, source: str) -> list[Hit]:
     hits: list[Hit] = []
-    for rule in rules:
+    for rule in RULE_LIBRARY:
         if not applicable(rule, product, channel, source):
             continue
         if rule.kind == "required":

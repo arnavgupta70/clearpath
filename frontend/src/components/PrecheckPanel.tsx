@@ -16,7 +16,7 @@ export function PrecheckPanel({ content, result, onInsert }: { content: string; 
       <div className="border-b border-line px-4 py-3 text-sm">
         <p className="font-semibold">{result.findings.length ? `${result.findings.length} things to fix` : 'All clear'}</p>
         <p className="mt-1 text-ink-2">
-          <RiskBadge tier={result.risk.tier} /> · decision expected by {formatDateTime(result.estimated_decision_by)}
+          <RiskBadge tier={result.risk_tier} /> · decision expected by {formatDateTime(result.estimated_decision_by)}
         </p>
       </div>
       <ul className="divide-y divide-line">

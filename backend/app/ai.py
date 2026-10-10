@@ -17,7 +17,6 @@ log = logging.getLogger(__name__)
 
 MODEL = os.environ.get("CLAUDE_MODEL", "claude-opus-5-5")
 EFFORT = os.environ.get("CLAUDE_EFFORT", "medium")
-CATEGORIES = sorted({r.category for r in RULE_LIBRARY} | {"Clear & conspicuous", "Accuracy"})
 
 
 def enabled() -> bool:
@@ -76,13 +75,12 @@ SCHEMA = {
                 "properties": {
                     "quote": {"type": "string"},
                     "title": {"type": "string"},
-                    "category": {"type": "string", "enum": CATEGORIES},
                     "severity": {"type": "string", "enum": ["critical", "major", "minor"]},
                     "explanation": {"type": "string"},
                     "suggestion": {"type": "string"},
                     "related_rule_id": {"type": "string"},
                 },
-                "required": ["quote", "title", "category", "severity", "explanation", "suggestion", "related_rule_id"],
+                "required": ["quote", "title", "severity", "explanation", "suggestion", "related_rule_id"],
                 "additionalProperties": False,
             },
         },
@@ -110,14 +108,13 @@ def locate(quote: str, text: str) -> tuple[int, int] | None:
     return (match.start(), match.end()) if match else None
 
 
-def finding(content: str, *, quote: str, title: str, category: str, severity: str, explanation: str,
+def finding(content: str, *, quote: str, title: str, severity: str, explanation: str,
             suggestion: str, rule_id: str | None) -> dict:
     span = locate(quote, content)
     return {
         "source": "ai",
         "rule_id": rule_id or None,
         "title": title,
-        "category": category,
         "severity": severity,
         "explanation": explanation,
         "suggestion": suggestion,
@@ -178,7 +175,7 @@ def analyze(content: str, product: str, channel: str, source: str, partner: str 
     log.info("Claude review: %d findings, input=%s cache_read=%s output=%s", len(data["findings"]),
              response.usage.input_tokens, response.usage.cache_read_input_tokens, response.usage.output_tokens)
     findings = [
-        finding(content, quote=f["quote"], title=f["title"], category=f["category"], severity=f["severity"],
+        finding(content, quote=f["quote"], title=f["title"], severity=f["severity"],
                 explanation=f["explanation"], suggestion=f["suggestion"], rule_id=f["related_rule_id"])
         for f in data["findings"][:6]
     ]

@@ -8,13 +8,13 @@ os.environ.pop("ANTHROPIC_API_KEY", None)
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
-from app.rules import RULE_LIBRARY, SNIPPETS, run_rules  # noqa: E402
+from app.rules import SNIPPETS, run_rules  # noqa: E402
 
 MAYA, SAM, JORDAN, DANA = {"X-User-Id": "1"}, {"X-User-Id": "3"}, {"X-User-Id": "6"}, {"X-User-Id": "8"}
 
 
 def ids(text, product="personal_loan", channel="display", source="internal"):
-    return {h.rule_id for h in run_rules(text, product, channel, source, RULE_LIBRARY)}
+    return {h.rule_id for h in run_rules(text, product, channel, source)}
 
 
 @pytest.fixture(scope="module")
@@ -57,7 +57,7 @@ def test_approved_disclosures_do_not_trip_rules(snippet):
     for product in ("personal_loan", "credit_card", "mortgage"):
         if "*" not in snippet["products"] and product not in snippet["products"]:
             continue
-        hits = [h for h in run_rules(snippet["body"], product, "display", "internal", RULE_LIBRARY) if h.start is not None]
+        hits = [h for h in run_rules(snippet["body"], product, "display", "internal") if h.start is not None]
         assert not hits, f"{snippet['id']} trips {[h.rule_id for h in hits]} for {product}"
 
 
@@ -66,7 +66,7 @@ def test_full_review_cycle(client):
     pre = client.post("/api/precheck", headers=MAYA, json={
         "content": "Rates as low as 7.99%. Hurry!", "product": "personal_loan", "channel": "social"}).json()
     assert {f["rule_id"] for f in pre["findings"]} >= {"REGZ-RATE-AS-APR", "UDAAP-URGENCY"}
-    assert pre["risk"]["tier"] in ("low", "medium", "high")
+    assert pre["risk_tier"] in ("low", "medium", "high")
 
     sub = client.post("/api/submissions", headers=MAYA, json={
         "title": "Test post", "product": "personal_loan", "channel": "social",
@@ -99,7 +99,7 @@ def test_full_review_cycle(client):
 
     done = client.post(f"/api/submissions/{sub['id']}/decision", headers=JORDAN, json={"decision": "approve"}).json()
     assert done["status"] == "approved" and done["approval_code"].startswith("CP-MKT-")
-    assert [e["kind"] for e in done["events"]][-1] == "approve"
+    assert done["events"][-1]["message"].startswith("Approved v2")
 
 
 def test_unfixed_change_carries_forward(client):

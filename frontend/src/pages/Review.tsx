@@ -58,7 +58,7 @@ function ReviewPage({ sub }: { sub: Submission }) {
         <h1 className="mt-1 text-xl font-semibold">{sub.title}</h1>
         <p className="text-sm text-ink-2">
           {sub.submitter.name}
-          {sub.partner && ` (${sub.partner})`} · {meta.products[sub.product]} · {meta.channels[sub.channel]} · submitted {timeAgo(sub.submitted_at)} ·
+          {sub.partner && ` (${sub.partner})`} · {meta.products[sub.product]} · {meta.channels[sub.channel]} · submitted {timeAgo(sub.versions[sub.current_version - 1].created_at)} ·
           assigned to {sub.assignee?.name ?? 'nobody'}
         </p>
         <p className="mt-1 text-xs text-ink-3">Risk score {sub.risk_score}: {sub.risk_factors.map((f) => `${f.label} (${f.points > 0 ? '+' : ''}${f.points})`).join(', ')}</p>

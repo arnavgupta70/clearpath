@@ -22,16 +22,11 @@
   --color-major: #ec835a;
   --color-major-text: #a3471f;
   --color-major-soft: #fdf0e9;
-  --color-minor: #fab219;
   --color-minor-text: #7d5800;
   --color-minor-soft: #fef6e1;
-  --color-good: #0ca30c;
   --color-good-text: #0b6b0b;
   --color-good-soft: #e7f5e7;
 
-  /* single-series data color and its meter track */
-  --color-chart: #2a78d6;
-  --color-chart-track: #cde2fb;
 }
 
 body {
