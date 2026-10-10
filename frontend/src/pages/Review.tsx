@@ -49,28 +49,41 @@ function ReviewPage({ sub }: { sub: Submission }) {
 
   return (
     <>
-      <Link to="/queue" className="text-sm text-ink-2 hover:text-ink">← Queue</Link>
-      <div className="mt-3 mb-5">
-        <p className="flex items-center gap-2 text-sm text-ink-3">
-          {sub.ref} <StatusBadge status={sub.status} /> <RiskBadge tier={sub.risk_tier} />
-          {sub.status === 'in_review' && <span>{dueText(sub.due_at)}</span>}
+      <Link to="/queue" className="text-sm text-ink-2 hover:text-ink">← Back to queue</Link>
+      <div className="mt-3 mb-6 rounded-xl border border-line bg-surface p-5 shadow-sm">
+        <p className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-mono text-ink-3">{sub.ref}</span>
+          <StatusBadge status={sub.status} />
+          <RiskBadge tier={sub.risk_tier} />
+          {sub.status === 'in_review' && <span className="text-ink-2">· {dueText(sub.due_at)}</span>}
         </p>
-        <h1 className="mt-1 text-xl font-semibold">{sub.title}</h1>
-        <p className="text-sm text-ink-2">
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{sub.title}</h1>
+        <p className="mt-1 text-sm text-ink-2">
           {sub.submitter.name}
-          {sub.partner && ` (${sub.partner})`} · {meta.products[sub.product]} · {meta.channels[sub.channel]} · submitted {timeAgo(sub.versions[sub.current_version - 1].created_at)} ·
-          assigned to {sub.assignee?.name ?? 'nobody'}
+          {sub.partner && ` (${sub.partner})`} · {meta.products[sub.product]} · {meta.channels[sub.channel]} · submitted{' '}
+          {timeAgo(sub.versions[sub.current_version - 1].created_at)} · reviewer {sub.assignee?.name ?? 'unassigned'}
         </p>
-        <p className="mt-1 text-xs text-ink-3">Risk score {sub.risk_score}: {sub.risk_factors.map((f) => `${f.label} (${f.points > 0 ? '+' : ''}${f.points})`).join(', ')}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="font-medium text-ink-2">Risk score {sub.risk_score}</span>
+          {sub.risk_factors.map((f) => (
+            <span key={f.label} className="rounded-full bg-canvas px-2 py-0.5 text-ink-2">
+              {f.label} <span className="text-ink-3">{f.points > 0 ? '+' : ''}{f.points}</span>
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="min-w-0 space-y-6">
           <Card
             title={
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1">
                 {sub.versions.map((v) => (
-                  <button key={v.number} onClick={() => setViewing(v.number)} className={clsx(v.number === viewing ? 'underline' : 'font-normal text-ink-2')}>
+                  <button
+                    key={v.number}
+                    onClick={() => setViewing(v.number)}
+                    className={clsx('rounded-md px-2.5 py-0.5', v.number === viewing ? 'bg-brand text-white' : 'font-normal text-ink-2 hover:bg-canvas')}
+                  >
                     v{v.number}
                   </button>
                 ))}
@@ -82,7 +95,11 @@ function ReviewPage({ sub }: { sub: Submission }) {
               </span>
             }
           >
-            {version.notes && <p className="mb-4 rounded bg-canvas px-3 py-2 text-sm">Note from {sub.submitter.name}: {version.notes}</p>}
+            {version.notes && (
+              <p className="mb-5 rounded-lg border-l-4 border-brand bg-brand-soft/50 px-4 py-2 text-sm">
+                <span className="font-medium">{sub.submitter.name}:</span> {version.notes}
+              </p>
+            )}
             {showChanges && previous ? (
               <DiffText before={previous.content} after={version.content} />
             ) : (
@@ -95,9 +112,9 @@ function ReviewPage({ sub }: { sub: Submission }) {
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-lg border border-line bg-surface p-3 text-sm">
-            <p className="text-xs text-ink-3">Claude review</p>
-            <p className="mt-1">{version.ai_status === 'pending' ? 'Running…' : version.ai_status === 'unavailable' ? 'Not configured on this server.' : version.ai_summary}</p>
+          <div className="rounded-xl border border-line bg-surface p-4 text-sm shadow-sm">
+            <p className="text-xs font-semibold text-ink-3 uppercase">Claude review</p>
+            <p className="mt-1.5 leading-relaxed">{version.ai_status === 'pending' ? 'Running…' : version.ai_status === 'unavailable' ? 'Not configured on this server.' : version.ai_summary}</p>
           </div>
 
           {groups.map(
@@ -127,9 +144,12 @@ function ReviewPage({ sub }: { sub: Submission }) {
           {fixed.length > 0 && (
             <section>
               <h2 className="mb-2 text-xs font-semibold text-ink-3 uppercase">Fixed in v{viewing}</h2>
-              <ul className="list-inside list-disc text-sm text-ink-2">
+              <ul className="space-y-1 text-sm text-ink-2">
                 {fixed.map((f) => (
-                  <li key={f.id}>{f.title}</li>
+                  <li key={f.id}>
+                    <span className="mr-1.5 font-semibold text-good-text">✓</span>
+                    {f.title}
+                  </li>
                 ))}
               </ul>
             </section>

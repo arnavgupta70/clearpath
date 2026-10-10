@@ -18,17 +18,9 @@ export function Insights() {
     <>
       <PageHeader title="Insights" description="Last 30 days vs. the 30 before. (Demo data: the pre-check went live five weeks ago.)" />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Card>
-          <p className="text-sm text-ink-2">Median time to decision</p>
-          <p className="text-2xl font-semibold">{days(kpis.median_days[0])}</p>
-          <p className="text-xs text-ink-3">was {days(kpis.median_days[1])}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-ink-2">Approved first time</p>
-          <p className="text-2xl font-semibold">{percent(kpis.first_pass_rate[0])}</p>
-          <p className="text-xs text-ink-3">was {percent(kpis.first_pass_rate[1])}</p>
-        </Card>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Kpi label="Median time to decision" now={kpis.median_days[0]} before={kpis.median_days[1]} format={days} lowerIsBetter />
+        <Kpi label="Approved first time" now={kpis.first_pass_rate[0]} before={kpis.first_pass_rate[1]} format={percent} />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -45,17 +37,17 @@ export function Insights() {
           <table className="w-full text-sm">
             <thead className="text-left text-xs text-ink-3">
               <tr>
-                <th className="pb-2 font-medium">Source</th>
-                <th className="pb-2 font-medium">Approved first time</th>
-                <th className="pb-2 font-medium">Most common issue</th>
+                <th className="pr-4 pb-2 font-medium">Source</th>
+                <th className="pr-4 pb-2 font-medium">Approved first time</th>
+                <th className="pr-4 pb-2 font-medium">Most common issue</th>
               </tr>
             </thead>
             <tbody>
               {partners.map((p) => (
                 <tr key={p.partner} className="border-t border-line">
-                  <td className="py-2">{p.partner}</td>
-                  <td className="py-2">{percent(p.first_pass_rate)}</td>
-                  <td className="py-2 text-ink-2">{p.top_issue ?? '–'}</td>
+                  <td className="py-2.5 pr-4">{p.partner}</td>
+                  <td className="py-2.5 pr-4">{percent(p.first_pass_rate)}</td>
+                  <td className="py-2.5 text-ink-2">{p.top_issue ?? '–'}</td>
                 </tr>
               ))}
             </tbody>
@@ -74,5 +66,21 @@ export function Insights() {
         </Card>
       </div>
     </>
+  )
+}
+
+function Kpi(props: { label: string; now: number | null; before: number | null; format: (v: number | null) => string; lowerIsBetter?: boolean }) {
+  const { label, now, before, format, lowerIsBetter } = props
+  const improved = now !== null && before !== null && (lowerIsBetter ? now < before : now > before)
+  return (
+    <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
+      <p className="text-sm text-ink-2">{label}</p>
+      <p className="mt-1 text-3xl font-semibold tracking-tight">{format(now)}</p>
+      {before !== null && (
+        <p className={improved ? 'text-sm text-good-text' : 'text-sm text-critical-text'}>
+          {now !== null && now < before ? '↓' : '↑'} from {format(before)}
+        </p>
+      )}
+    </div>
   )
 }

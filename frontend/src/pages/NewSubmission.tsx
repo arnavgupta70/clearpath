@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PrecheckPanel } from '../components/PrecheckPanel'
-import { Button, PageHeader } from '../components/ui'
+import { Button, inputClass, PageHeader } from '../components/ui'
 import { api, type Snippet } from '../lib/api'
 import { plural } from '../lib/format'
 import { usePersona, useUser } from '../lib/persona'
@@ -65,15 +65,15 @@ export function NewSubmission() {
     <>
       <PageHeader title="New submission" actions={<Button onClick={loadExample}>Load an example</Button>} />
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-5 rounded-xl border border-line bg-surface p-6 shadow-sm">
           <label className="block text-sm font-medium">
             Name
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required className="mt-1 block w-full rounded border border-line-strong px-3 py-2 font-normal" />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
           </label>
-          <div className="flex gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <label className="text-sm font-medium">
               Product
-              <select value={product} onChange={(e) => setProduct(e.target.value)} className="mt-1 block rounded border border-line-strong px-2 py-2 font-normal">
+              <select value={product} onChange={(e) => setProduct(e.target.value)} className={inputClass}>
                 {Object.entries(meta.products).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
@@ -81,7 +81,7 @@ export function NewSubmission() {
             </label>
             <label className="text-sm font-medium">
               Channel
-              <select value={channel} onChange={(e) => setChannel(e.target.value)} className="mt-1 block rounded border border-line-strong px-2 py-2 font-normal">
+              <select value={channel} onChange={(e) => setChannel(e.target.value)} className={inputClass}>
                 {Object.entries(meta.channels).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
@@ -90,11 +90,11 @@ export function NewSubmission() {
           </div>
           <label className="block text-sm font-medium">
             Copy (include footers and fine print)
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} required className="mt-1 block w-full rounded border border-line-strong px-3 py-2 font-normal" />
+            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={12} required className={`${inputClass} leading-7`} />
           </label>
           <label className="block text-sm font-medium">
             Anything the reviewer should know?
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="mt-1 block w-full rounded border border-line-strong px-3 py-2 font-normal" />
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={inputClass} />
           </label>
           {error && <p className="text-sm text-critical-text">{error}</p>}
           <Button type="submit" variant="primary" disabled={submitting}>Submit for review</Button>

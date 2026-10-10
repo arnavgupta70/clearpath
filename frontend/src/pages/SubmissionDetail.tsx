@@ -4,7 +4,7 @@ import { ActivityLog } from '../components/ActivityLog'
 import { SeverityIcon, StatusBadge } from '../components/badges'
 import { HighlightedText } from '../components/HighlightedText'
 import { PrecheckPanel } from '../components/PrecheckPanel'
-import { Button, Card, Loading } from '../components/ui'
+import { Button, Card, inputClass, Loading } from '../components/ui'
 import { api, type Submission } from '../lib/api'
 import { formatDateTime } from '../lib/format'
 import { usePersona } from '../lib/persona'
@@ -18,6 +18,14 @@ export function SubmissionDetail() {
   if (error) return <p className="text-critical-text">{error.message}</p>
   if (!data) return <Loading />
   return <SubmissionPage key={id} sub={data} />
+}
+
+const BANNER: Record<Submission['status'], string> = {
+  in_review: 'border-brand bg-brand-soft/60',
+  changes_requested: 'border-major bg-major-soft',
+  approved: 'border-good-text bg-good-soft',
+  approved_with_conditions: 'border-good-text bg-good-soft',
+  rejected: 'border-critical bg-critical-soft',
 }
 
 function statusMessage(sub: Submission) {
@@ -46,15 +54,15 @@ function SubmissionPage({ sub }: { sub: Submission }) {
       <Link to="/submissions" className="text-sm text-ink-2 hover:text-ink">← My submissions</Link>
       <div className="mt-3 mb-5">
         <p className="flex items-center gap-2 text-sm text-ink-3">
-          {sub.ref} <StatusBadge status={sub.status} /> v{sub.current_version}
+          <span className="font-mono">{sub.ref}</span> <StatusBadge status={sub.status} /> v{sub.current_version}
         </p>
-        <h1 className="mt-1 text-xl font-semibold">{sub.title}</h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">{sub.title}</h1>
         <p className="text-sm text-ink-2">
           {meta.products[sub.product]} · {meta.channels[sub.channel]}
         </p>
       </div>
 
-      <div className="mb-6 rounded-lg border border-line bg-surface p-4 text-sm">
+      <div className={`mb-6 rounded-xl border-l-4 p-5 text-sm shadow-sm ${BANNER[sub.status]}`}>
         <p>{statusMessage(sub)}</p>
         {sub.decision_note && sub.status !== 'in_review' && <p className="mt-2 italic">“{sub.decision_note}”</p>}
         {sub.status === 'changes_requested' && !revising && (
@@ -86,7 +94,7 @@ function RequiredChanges({ sub }: { sub: Submission }) {
   return (
     <ul className="space-y-2">
       {required.map((f) => (
-        <li key={f.id} className="flex gap-2 rounded-lg border border-line bg-surface p-3 text-sm">
+        <li key={f.id} className="flex gap-2 rounded-xl border border-line bg-surface p-4 text-sm shadow-sm">
           <SeverityIcon severity={f.severity} />
           <div>
             <p className="font-medium">{f.title}</p>
@@ -113,13 +121,13 @@ function Revise({ sub, onDone }: { sub: Submission; onDone: () => void }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
       <div className="space-y-4">
-        <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={14} className="block w-full rounded border border-line-strong px-3 py-2" />
+        <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={14} className={`${inputClass} leading-7`} />
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={2}
           placeholder="What changed? (optional)"
-          className="block w-full rounded border border-line-strong px-3 py-2 text-sm"
+          className={inputClass}
         />
         {error && <p className="text-sm text-critical-text">{error}</p>}
         <div className="flex gap-2">

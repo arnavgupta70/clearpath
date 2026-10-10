@@ -4,7 +4,7 @@ import type { RiskTier, Severity, SubmissionStatus, User } from '../lib/api'
 import { SEVERITY_LABEL, STATUS_LABEL } from '../lib/format'
 
 const SEVERITY_ICON = { critical: OctagonAlert, major: TriangleAlert, minor: CircleAlert }
-const SEVERITY_COLOR = { critical: 'text-critical-text', major: 'text-major-text', minor: 'text-minor-text' }
+export const SEVERITY_COLOR = { critical: 'text-critical-text', major: 'text-major-text', minor: 'text-minor-text' }
 
 export function SeverityIcon({ severity }: { severity: Severity }) {
   const Icon = SEVERITY_ICON[severity]
@@ -12,7 +12,12 @@ export function SeverityIcon({ severity }: { severity: Severity }) {
 }
 
 export function SeverityLabel({ severity }: { severity: Severity }) {
-  return <span className={clsx('text-xs font-semibold', SEVERITY_COLOR[severity])}>{SEVERITY_LABEL[severity]}</span>
+  const Icon = SEVERITY_ICON[severity]
+  return (
+    <span className={clsx('inline-flex items-center gap-1 text-xs font-semibold', SEVERITY_COLOR[severity])}>
+      <Icon className="size-3.5" /> {SEVERITY_LABEL[severity]}
+    </span>
+  )
 }
 
 const STATUS_COLOR: Record<SubmissionStatus, string> = {
@@ -24,17 +29,24 @@ const STATUS_COLOR: Record<SubmissionStatus, string> = {
 }
 
 export function StatusBadge({ status }: { status: SubmissionStatus }) {
-  return <span className={clsx('rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap', STATUS_COLOR[status])}>{STATUS_LABEL[status]}</span>
+  return <span className={clsx('rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap', STATUS_COLOR[status])}>{STATUS_LABEL[status]}</span>
 }
 
 const RISK_COLOR: Record<RiskTier, string> = {
-  high: 'border-critical/40 text-critical-text',
-  medium: 'border-major/50 text-major-text',
-  low: 'border-line-strong text-ink-2',
+  high: 'bg-critical-soft text-critical-text',
+  medium: 'bg-major-soft text-major-text',
+  low: 'bg-canvas text-ink-2',
 }
+const RISK_DOT: Record<RiskTier, string> = { high: 'bg-critical', medium: 'bg-major', low: 'bg-ink-3' }
+const RISK_LABEL: Record<RiskTier, string> = { high: 'High risk', medium: 'Medium risk', low: 'Low risk' }
 
 export function RiskBadge({ tier }: { tier: RiskTier }) {
-  return <span className={clsx('rounded border px-1.5 py-px text-xs font-medium whitespace-nowrap', RISK_COLOR[tier])}>{tier} risk</span>
+  return (
+    <span className={clsx('inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap', RISK_COLOR[tier])}>
+      <span className={clsx('size-1.5 rounded-full', RISK_DOT[tier])} />
+      {RISK_LABEL[tier]}
+    </span>
+  )
 }
 
 export function Avatar({ user }: { user: User }) {
