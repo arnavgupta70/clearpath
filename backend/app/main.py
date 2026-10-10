@@ -3,13 +3,14 @@ import os
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
-from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from . import ai, metrics, workflow
+from . import ai, auth, metrics, workflow
 from .db import engine, get_session, init_db, reset_db
 from .models import Finding, Submission, User
 from .rules import CHANNELS, PRODUCTS, RULE_LIBRARY, SNIPPETS
@@ -46,11 +47,14 @@ def workflow_error(_: Request, error: WorkflowError):
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-# No real auth: the frontend sends whichever demo user is picked.
-def current_user(session: SessionDep, x_user_id: Annotated[int, Header()]) -> User:
-    user = session.get(User, x_user_id)
+bearer = HTTPBearer(auto_error=False)
+
+
+def current_user(session: SessionDep, credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]) -> User:
+    user_id = auth.read_token(credentials.credentials) if credentials else None
+    user = session.get(User, user_id) if user_id else None
     if not user:
-        raise HTTPException(401, "Unknown user")
+        raise HTTPException(401, "Please sign in again")
     return user
 
 
@@ -96,6 +100,9 @@ class TriageIn(BaseModel):
     status: Literal["open", "accepted", "dismissed"]
 
 
+class LoginIn(BaseModel):
+    email: str
+    password: str
 
 
 @app.get("/api/health")
@@ -103,9 +110,19 @@ def health():
     return {"ok": True}
 
 
+@app.post("/api/login")
+def login(body: LoginIn, session: SessionDep):
+    user = session.exec(select(User).where(User.email == body.email.strip().lower())).first()
+    if not user or not auth.check_password(body.password, user.password_hash):
+        raise HTTPException(401, "Wrong email or password")
+    return {"token": auth.make_token(user.id), "user": user}
+
+
+# public, so the login page can list the demo accounts
 @app.get("/api/meta")
 def meta(session: SessionDep):
     return {
+        "demo_password": auth.DEMO_PASSWORD,
         "products": PRODUCTS,
         "channels": CHANNELS,
         "users": session.exec(select(User).order_by(User.id)).all(),
@@ -174,7 +191,7 @@ def triage(finding_id: int, body: TriageIn, _: ReviewerDep, session: SessionDep)
 
 
 @app.get("/api/metrics")
-def get_metrics(session: SessionDep):
+def get_metrics(_: ReviewerDep, session: SessionDep):
     return metrics.compute(session)
 
 

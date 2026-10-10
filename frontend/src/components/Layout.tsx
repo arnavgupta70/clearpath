@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import { isReviewer, usePersona } from '../lib/persona'
 import { Avatar } from './badges'
 import { Logo } from './ui'
@@ -8,19 +8,13 @@ const REVIEWER_LINKS = [
   { to: '/queue', label: 'Queue' },
   { to: '/insights', label: 'Insights' },
 ]
-const TEAMS = [
-  { label: 'Marketing', roles: ['marketer'] },
-  { label: 'Affiliate partners', roles: ['affiliate'] },
-  { label: 'Compliance', roles: ['reviewer', 'lead'] },
-]
 const SUBMITTER_LINKS = [
   { to: '/submissions', label: 'My submissions' },
   { to: '/submissions/new', label: 'New submission' },
 ]
 
 export function Layout() {
-  const { user, meta, switchUser } = usePersona()
-  const navigate = useNavigate()
+  const { user, signOut } = usePersona()
   const links = user && isReviewer(user) ? REVIEWER_LINKS : SUBMITTER_LINKS
 
   return (
@@ -43,30 +37,13 @@ export function Layout() {
             ))}
           </nav>
           {user && (
-            <label className="ml-auto flex items-center gap-2 text-sm">
+            <div className="ml-auto flex items-center gap-3 text-sm">
               <Avatar user={user} />
-              <select
-                value={user.id}
-                onChange={(e) => {
-                  switchUser(Number(e.target.value))
-                  navigate('/')
-                }}
-                className="max-w-64 truncate rounded-md border border-line bg-surface py-1 pr-1 pl-2 font-medium hover:border-line-strong"
-                aria-label="Viewing as"
-              >
-                {TEAMS.map((team) => (
-                  <optgroup key={team.label} label={team.label}>
-                    {meta.users
-                      .filter((u) => team.roles.includes(u.role))
-                      .map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.role === 'affiliate' ? `${u.name} (${u.org})` : u.name}
-                        </option>
-                      ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
+              <span className="font-medium">{user.role === 'affiliate' ? `${user.name} (${user.org})` : user.name}</span>
+              <button onClick={signOut} className="rounded-md px-2 py-1 text-ink-2 hover:bg-canvas hover:text-ink">
+                Sign out
+              </button>
+            </div>
           )}
         </div>
       </header>

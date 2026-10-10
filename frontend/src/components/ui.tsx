@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 export function Logo() {
   return (
@@ -32,7 +32,7 @@ const VARIANTS = {
   danger: 'border border-critical/40 bg-surface text-critical-text hover:bg-critical-soft',
 }
 
-export function Button({ variant = 'secondary', className, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: keyof typeof VARIANTS }) {
+export function Button({ variant = 'secondary', className, ...props }: ComponentProps<'button'> & { variant?: keyof typeof VARIANTS }) {
   return (
     <button
       className={clsx('inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50', VARIANTS[variant], className)}

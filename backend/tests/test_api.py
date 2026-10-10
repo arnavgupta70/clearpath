@@ -7,10 +7,17 @@ os.environ.pop("ANTHROPIC_API_KEY", None)
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+from app.auth import DEMO_PASSWORD, make_token  # noqa: E402
 from app.main import app  # noqa: E402
 from app.rules import SNIPPETS, run_rules  # noqa: E402
 
-MAYA, SAM, JORDAN, DANA = {"X-User-Id": "1"}, {"X-User-Id": "3"}, {"X-User-Id": "6"}, {"X-User-Id": "8"}
+
+
+def signed_in(user_id):
+    return {"Authorization": f"Bearer {make_token(user_id)}"}
+
+
+MAYA, SAM, JORDAN, DANA = signed_in(1), signed_in(3), signed_in(6), signed_in(8)
 
 
 def ids(text, product="personal_loan", channel="display", source="internal"):
@@ -59,6 +66,20 @@ def test_approved_disclosures_do_not_trip_rules(snippet):
             continue
         hits = [h for h in run_rules(snippet["body"], product, "display", "internal") if h.start is not None]
         assert not hits, f"{snippet['id']} trips {[h.rule_id for h in hits]} for {product}"
+
+
+# ---------------------------------------------------------------- login
+def test_login(client):
+    r = client.post("/api/login", json={"email": "Maya@ClearPath.test ", "password": DEMO_PASSWORD})
+    assert r.status_code == 200
+    assert r.json()["user"]["name"] == "Maya Chen"
+    assert "password_hash" not in r.json()["user"]
+    token = r.json()["token"]
+    assert client.get("/api/submissions?mine=true", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+    assert client.post("/api/login", json={"email": "maya@clearpath.test", "password": "nope"}).status_code == 401
+    assert client.get("/api/submissions?mine=true").status_code == 401
+    assert client.get("/api/submissions?mine=true", headers={"Authorization": f"Bearer {token[:-1]}x"}).status_code == 401
 
 
 # ---------------------------------------------------------------- workflow
@@ -117,7 +138,7 @@ def test_unfixed_change_carries_forward(client):
 
 
 def test_metrics_shape(client):
-    m = client.get("/api/metrics").json()
+    m = client.get("/api/metrics", headers=DANA).json()
     assert len(m["weeks"]) == 10 and m["partners"] and m["precision"]
 
 

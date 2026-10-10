@@ -8,6 +8,7 @@ export type Decision = 'approve' | 'approve_with_conditions' | 'request_changes'
 export interface User {
   id: number
   name: string
+  email: string
   title: string
   role: Role
   org: string
@@ -23,6 +24,7 @@ export interface Snippet {
 }
 
 export interface Meta {
+  demo_password: string
   products: Record<string, string>
   channels: Record<string, string>
   users: User[]
@@ -126,15 +128,38 @@ export interface Draft {
   channel: string
 }
 
-export const USER_KEY = 'clearview.user'
+export interface Session {
+  token: string
+  userId: number
+}
+
+const SESSION_KEY = 'clearview.session'
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000'
+
+export function loadSession(): Session | null {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY) ?? 'null')
+  } catch {
+    return null
+  }
+}
+
+export function saveSession(session: Session | null) {
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  else localStorage.removeItem(SESSION_KEY)
+}
 
 async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const userId = localStorage.getItem(USER_KEY)
-  if (userId) headers['X-User-Id'] = userId
+  const session = loadSession()
+  if (session) headers.Authorization = `Bearer ${session.token}`
 
   const response = await fetch(BASE_URL + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
+  if (response.status === 401 && session) {
+    // token expired or the server's secret changed: back to the login page
+    saveSession(null)
+    window.location.reload()
+  }
   if (!response.ok) {
     const error = await response.json().catch(() => null)
     throw new Error(typeof error?.detail === 'string' ? error.detail : `Request failed (${response.status})`)
@@ -144,6 +169,7 @@ async function request<T>(path: string, method = 'GET', body?: unknown): Promise
 
 export const api = {
   meta: () => request<Meta>('/api/meta'),
+  login: (email: string, password: string) => request<{ token: string; user: User }>('/api/login', 'POST', { email, password }),
   precheck: (draft: Draft) => request<Precheck>('/api/precheck', 'POST', draft),
 
   submissions: (mine = false) => request<SubmissionSummary[]>(`/api/submissions${mine ? '?mine=true' : ''}`),

@@ -4,7 +4,7 @@ A review tool for ClearPath Financial's (fictional) marketing compliance team, t
 
 Live demo: https://arnavgupta70.github.io/clearpath/
 
-There's no login, just pick a user from the dropdown. The API runs on Render's free tier so the first load might take a minute while it wakes up. If you mess the data up there's a "Reset demo data" link on the start page.
+Every demo account uses the password `clearpath`, and the login page lists them so you can click one to fill it in. The API runs on Render's free tier so the first load might take a minute while it wakes up. If you mess the data up there's a "Reset demo data" link on the start page.
 
 ## The problem
 
@@ -41,7 +41,7 @@ The pre-check warns, it doesn't block. If it blocked people they'd just go back 
 
 It's text only for now since that's most of the volume. Images and PDFs would go through the same flow.
 
-No real auth, just a user picker, so you can try every role quickly.
+Login is email and password. Passwords are hashed with scrypt and the API hands back a signed token, so there's no sessions table. It's enough for a demo but I'd use the company's SSO for real.
 
 The demo data isn't inserted directly. The seed script calls the same workflow functions the app uses, with older timestamps, so the demo can't drift from how the app actually behaves.
 
@@ -78,13 +78,14 @@ Everything works without an API key. If you want the Claude review, set `ANTHROP
 
 The frontend goes to GitHub Pages through `.github/workflows/pages.yml` on every push to `main`. In the repo settings set Pages source to "GitHub Actions" and add an Actions variable called `API_URL` pointing at the API.
 
-The API is a free Render web service set up from `render.yaml`. You can add `ANTHROPIC_API_KEY` there too if you want Claude on.
+The API is a free Render web service set up from `render.yaml`. It generates a `SECRET_KEY` for signing login tokens. You can add `ANTHROPIC_API_KEY` there too if you want Claude on.
 
 ## Where things are
 
 ```
 backend/app/
   main.py       routes
+  auth.py       passwords and tokens
   models.py     tables
   rules.py      the rules, the matcher, approved wording
   risk.py       score, tier, SLA

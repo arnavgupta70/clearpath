@@ -11,6 +11,8 @@ def utcnow() -> datetime:
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
+    email: str = Field(unique=True)
+    password_hash: str = Field(exclude=True)  # never sent to the frontend
     title: str
     role: str  # marketer, affiliate, reviewer or lead
     org: str

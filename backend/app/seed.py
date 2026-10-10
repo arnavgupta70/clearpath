@@ -12,6 +12,7 @@ from itertools import accumulate
 from sqlmodel import Session, select
 
 from . import ai
+from .auth import DEMO_PASSWORD, hash_password
 from .models import Submission, User, utcnow
 from .rules import SNIPPETS
 from .workflow import create_submission, current_version, decide, findings_for, record_ai_review, resubmit, triage, version_findings
@@ -19,14 +20,14 @@ from .workflow import create_submission, current_version, decide, findings_for, 
 SNIPPET = {s["id"]: s["body"] for s in SNIPPETS}
 
 USERS = [
-    dict(name="Maya Chen", title="Growth Marketing Manager", role="marketer", org="ClearPath Financial", color="#0e7490"),
-    dict(name="Luis Ortega", title="Lifecycle Marketing Lead", role="marketer", org="ClearPath Financial", color="#7c3aed"),
-    dict(name="Sam Patel", title="Partnerships Manager", role="affiliate", org="CreditHero", color="#c2410c"),
-    dict(name="Erin Brooks", title="Content Lead", role="affiliate", org="LoanLadder", color="#15803d"),
-    dict(name="Kofi Mensah", title="Media Buyer", role="affiliate", org="RateWise Media", color="#b45309"),
-    dict(name="Jordan Lee", title="Marketing Compliance Analyst", role="reviewer", org="ClearPath Compliance", color="#1d4ed8"),
-    dict(name="Alex Kim", title="Marketing Compliance Analyst", role="reviewer", org="ClearPath Compliance", color="#be185d"),
-    dict(name="Dana Whitfield", title="Senior Compliance Counsel", role="lead", org="ClearPath Compliance", color="#334155"),
+    dict(name="Maya Chen", email="maya@clearpath.test", title="Growth Marketing Manager", role="marketer", org="ClearPath Financial", color="#0e7490"),
+    dict(name="Luis Ortega", email="luis@clearpath.test", title="Lifecycle Marketing Lead", role="marketer", org="ClearPath Financial", color="#7c3aed"),
+    dict(name="Sam Patel", email="sam@credithero.test", title="Partnerships Manager", role="affiliate", org="CreditHero", color="#c2410c"),
+    dict(name="Erin Brooks", email="erin@loanladder.test", title="Content Lead", role="affiliate", org="LoanLadder", color="#15803d"),
+    dict(name="Kofi Mensah", email="kofi@ratewise.test", title="Media Buyer", role="affiliate", org="RateWise Media", color="#b45309"),
+    dict(name="Jordan Lee", email="jordan@clearpath.test", title="Marketing Compliance Analyst", role="reviewer", org="ClearPath Compliance", color="#1d4ed8"),
+    dict(name="Alex Kim", email="alex@clearpath.test", title="Marketing Compliance Analyst", role="reviewer", org="ClearPath Compliance", color="#be185d"),
+    dict(name="Dana Whitfield", email="dana@clearpath.test", title="Senior Compliance Counsel", role="lead", org="ClearPath Compliance", color="#334155"),
 ]
 
 
@@ -277,7 +278,7 @@ def history(demo: Demo, now: datetime, rng: random.Random) -> None:
 
 
 def seed(session: Session) -> None:
-    session.add_all(User(**user) for user in USERS)
+    session.add_all(User(**user, password_hash=hash_password(DEMO_PASSWORD)) for user in USERS)
     session.commit()
     demo = Demo(session)
     now = utcnow()

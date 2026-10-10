@@ -11,5 +11,7 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: https://arnavgupta70.github.io
+      - key: SECRET_KEY
+        generateValue: true
       - key: ANTHROPIC_API_KEY
         sync: false

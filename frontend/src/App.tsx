@@ -3,12 +3,12 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { isReviewer, PersonaProvider, useMeta, usePersona } from './lib/persona'
 import { Insights } from './pages/Insights'
+import { Login } from './pages/Login'
 import { MySubmissions } from './pages/MySubmissions'
 import { NewSubmission } from './pages/NewSubmission'
 import { Queue } from './pages/Queue'
 import { Review } from './pages/Review'
 import { SubmissionDetail } from './pages/SubmissionDetail'
-import { Welcome } from './pages/Welcome'
 
 export function App() {
   const meta = useMeta()
@@ -18,7 +18,7 @@ export function App() {
   return (
     <PersonaProvider meta={meta.data}>
       <Routes>
-        <Route path="/welcome" element={<Welcome />} />
+        <Route path="/login" element={<Login />} />
         <Route element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="/queue" element={<ReviewerOnly><Queue /></ReviewerOnly>} />
@@ -36,7 +36,7 @@ export function App() {
 
 function Home() {
   const { user } = usePersona()
-  if (!user) return <Navigate to="/welcome" replace />
+  if (!user) return <Navigate to="/login" replace />
   return <Navigate to={isReviewer(user) ? '/queue' : '/submissions'} replace />
 }
 

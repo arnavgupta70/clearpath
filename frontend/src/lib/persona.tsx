@@ -1,31 +1,35 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { api, USER_KEY, type Meta, type User } from './api'
+import { api, loadSession, saveSession, type Meta, type Session, type User } from './api'
 
-// There's no real login. You pick a demo user, it's saved in localStorage, and api.ts sends it as X-User-Id.
+// The login token is kept in localStorage and api.ts sends it with every request.
 
 interface PersonaContextValue {
   user: User | null
   meta: Meta
-  switchUser: (id: number | null) => void
+  signIn: (session: Session) => void
+  signOut: () => void
 }
 
 const PersonaContext = createContext<PersonaContextValue | null>(null)
 
 export function PersonaProvider({ meta, children }: { meta: Meta; children: ReactNode }) {
   const queryClient = useQueryClient()
-  const [userId, setUserId] = useState(() => Number(localStorage.getItem(USER_KEY)) || null)
+  const [session, setSession] = useState(loadSession)
 
-  function switchUser(id: number | null) {
-    setUserId(id)
-    if (id === null) localStorage.removeItem(USER_KEY)
-    else localStorage.setItem(USER_KEY, String(id))
+  function changeSession(next: Session | null) {
+    saveSession(next)
+    setSession(next)
     // cached data belongs to the previous user
     queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'meta' })
   }
 
-  const user = meta.users.find((u) => u.id === userId) ?? null
-  return <PersonaContext value={{ user, meta, switchUser }}>{children}</PersonaContext>
+  const user = meta.users.find((u) => u.id === session?.userId) ?? null
+  return (
+    <PersonaContext value={{ user, meta, signIn: changeSession, signOut: () => changeSession(null) }}>
+      {children}
+    </PersonaContext>
+  )
 }
 
 export function usePersona() {
